@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+    app:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+         - 8080:8080
+      volumes:
+        - ./src:/choreapplication/src
+        - ./application.properties:/choreapplication/application.properties
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/chore_database
+        SPRING_DATASOURCE_USERNAME: user
+        SPRING_DATASOURCE_PASSWORD: secret_password
+        SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      depends_on:
+        - mysql
+      restart: unless-stopped
+
+    mysql:
+      image: mysql:8.0
+      container_name: mysql_container
+      restart: unless-stopped
+      environment:
+        MYSQL_ROOT_PASSWORD: secretpassword
+        MYSQL_DATABASE: chore_database
+        MYSQL_USER: user
+        MYSQL_PASSWORD: secret_password
+      ports:
+        - "3306:3306"
+      volumes:
+        - mysql_data:/var/lib/mysql
+      healthcheck:
+        test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecretpassword" ]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+
+volumes:
+  mysql_data:
